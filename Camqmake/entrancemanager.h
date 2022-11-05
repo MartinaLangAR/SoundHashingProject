@@ -4,6 +4,7 @@
 #include <simplefacedetector.h>
 #include <facehasher.h>
 #include <camera.h>
+#include <audioplayer.h>
 #include <opencv2/face/facerec.hpp>
 
 class EntranceManager
@@ -16,7 +17,8 @@ public:
 
     EntranceManager(int camera_device_nr);
     bool draw_on_frame(cv::Mat &frame, int w, int h);
-    void show_stream(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model);
+    void show_stream(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model, AudioPlayer* audioplayer);
+    void show_in_background(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model, AudioPlayer* audioplayer);
 };
 
 #endif // ENTRANCEMANAGER_H

@@ -16,7 +16,8 @@ public:
     std::vector<FMOD::Channel*> channels;
     AudioPlayer();
     void create_sounds(); //every soundpointer gets initialized
-    bool play_hashcode(uint hashcode);
+    bool play_hashcode(uint hashcode); //returns wether hashcode associated file was already playing
+    void stop_channel(uint hashcode);
 };
 
 #endif // AUDIOPLAYER_H

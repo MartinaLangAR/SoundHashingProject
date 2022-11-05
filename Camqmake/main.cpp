@@ -3,6 +3,7 @@
 #include <opencv2/videoio.hpp>
 #include <camera.h>
 #include <facehasher.h>
+#include <audioplayer.h>
 #include <entrancemanager.h>
 #include <exitmanager.h>
 #include "iostream"
@@ -19,6 +20,7 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #define SHOW(X) std::cout << # X " = " << (X) << std::endl
 
@@ -115,9 +117,11 @@ int main(int, char**) {
     // next is self-written FaceHasher to calc the hashcode from a 128-D array
     FaceHasher facehasher;
     EntranceManager entrancemanager(0);
-    while (1){
-        entrancemanager.show_stream("Entrance", model);
-    }
+
+    //init AudioPlayer and load soundfiles
+    AudioPlayer audioplayer;
+    audioplayer.create_sounds();
+    entrancemanager.show_in_background("Entrance", model, &audioplayer);
 
     // The following line predicts the label of a given
     // test image:

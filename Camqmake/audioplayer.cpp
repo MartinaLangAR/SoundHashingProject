@@ -27,8 +27,8 @@ int getdir (std::string dir, std::vector<std::string> &files)
 
     while ((dirp = readdir(dp)) != NULL) {
         std::string file_name = "audio/" + std::string(dirp->d_name);
-        if (file_name != "." and file_name != ".."){
-        files.push_back(std::string(dirp->d_name));
+        if (file_name != "audio/." and file_name != "audio/.."){
+        files.push_back(std::string(file_name));
 
         }
     }
@@ -55,8 +55,8 @@ AudioPlayer::AudioPlayer()
     // Create the channel group.
     result = system->createChannelGroup("Frequencies", &channelGroup);
 
-    soundpointer.reserve(200);  //<-------------------------------------------- Amount of soundfiles manually set here!
-    channels.reserve(200);
+    soundpointer.reserve(160);  //<-------------------------------------------- Amount of soundfiles manually set here!
+    channels.reserve(160);
     for (int i=0; i< soundpointer.capacity(); i++){
         soundpointer[i] = nullptr;
         channels[i] = nullptr;
@@ -67,15 +67,29 @@ void AudioPlayer::create_sounds(){
     std::vector<std::string> file_names;
     getdir("audio", file_names);
     for (int i=0; i <= file_names.size(); i++) {
-       system->createSound(file_names[i].c_str(), FMOD_DEFAULT, nullptr, &soundpointer[i]);
+       auto path = file_names[i].c_str();
+       std::cout << path << std::endl;
+       system->createSound(path, FMOD_DEFAULT, nullptr, &soundpointer[i]);
        soundpointer[i]->setMode(FMOD_LOOP_NORMAL);
        soundpointer[i]->setLoopCount(-1);
+       //std::cout << "Sound-Pointer is set to " << soundpointer[i] << std::endl;
     }
 };
 
 bool AudioPlayer::play_hashcode(uint hashcode) {
     //plays file according to hashcode in endless loop
     //returns wether it was already playing
-    return 1;
+    bool is_active;
+    channels[hashcode]->isPlaying(&is_active);
+    if (is_active){
+        std::cout << "Sound " << hashcode << " is already playing!" << std::endl;
+        return 1;
+    }
+    std::cout << "about to play " << soundpointer[hashcode] << std::endl;
+    result = system->playSound(soundpointer[hashcode], nullptr, false, &channels[hashcode]);
+    return 0;
+}
 
+void AudioPlayer::stop_channel(uint hashcode) {
+    channels[hashcode]->setPaused(true);
 }

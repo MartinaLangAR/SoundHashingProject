@@ -5,6 +5,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/face/facerec.hpp>
 #include <boost/lexical_cast.hpp>
+#include <thread>
 
 #define SHOW(X) std::cout << # X " = " << (X) << std::endl
 
@@ -116,7 +117,7 @@ void train_model(cv::Ptr<cv::face::LBPHFaceRecognizer>& model, cv::Mat img, int 
     return ;
 }
 
-void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model){
+void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model, AudioPlayer* audioplayer){
     namedWindow(windowName, cv::WINDOW_NORMAL);
     cv::Mat frame;
     while(1){
@@ -142,6 +143,8 @@ void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPH
                 display_text(frame, "Please wait", "Entrance");
                 return;
             }
+            //calc hashcode
+            uint hashcode = hashing(encoding, facehasher);
             for (size_t i = 0; i < encoding.size(); ++i)
                 {
                     for (size_t j = 0; j < encodings.size(); ++j)
@@ -152,6 +155,7 @@ void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPH
                         // decision threshold the network was trained to use.  Although you can
                         // certainly use any other threshold you find useful.
                         if (length(encoding[i]-encodings[j]) < 0.6){
+
                            display_text(frame, "Checked In", "Entrance");
                            std::cout << "Nothing new here to see!" << std::endl;
                            return;
@@ -160,9 +164,9 @@ void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPH
                 }
             // add encoding to encodings
             if (not encoding.empty()){
-                uint hashcode = hashing(encoding, facehasher);
                 encodings.push_back(encoding[0]);
                 std::cout << "About to save new encoding!";
+                audioplayer->play_hashcode(hashcode);
                 display_hashcode(frame, hashcode, "Entrance");
                 train_model(model, cropped, hashcode);
             }
@@ -170,5 +174,10 @@ void EntranceManager::show_stream(std::string windowName, cv::Ptr<cv::face::LBPH
         cv::imshow("Entrance", frame );
         cv::waitKey(50);
       }
+}
+
+void EntranceManager::show_in_background(std::string windowName, cv::Ptr<cv::face::LBPHFaceRecognizer>& model, AudioPlayer* audioplayer){
+    std::thread t(&EntranceManager::show_stream, this, windowName, std::ref(model), std::ref(audioplayer));
+    t.join();
 }
 
